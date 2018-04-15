@@ -2,16 +2,23 @@ import random
 import pandas as pd
 import numpy as np
 import sklearn.linear_model
+import sklearn.preprocessing
+
 
 data_file = './Data/anafile_challenge_170522.csv'
 
-numerical_columns = ['Age', 'NumBMI', 'TempLogFreq', 'SexLogFreq', 'AnovCycles ']
+numerical_columns = ['Age', 'NumBMI', 'Weight', 'TempLogFreq', 'SexLogFreq', 'AnovCycles ']
+
 
 def get_X_Y_from_df(df):
+    df = df[df['Weight'] != 0]
+    df = df[df['NumBMI'] != 0]
     Y = df['CyclesTrying'].as_matrix()
     X = df[numerical_columns].as_matrix()
+
     X = np.concatenate([X, X ** 2], axis=1)  # basic non-linear model
     return X, Y
+
 
 # Use the same seed each time for repeatable results
 same_random_seed = int.from_bytes('nc'.encode('utf-8'), 'little')  # cutesy

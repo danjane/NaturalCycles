@@ -20,3 +20,19 @@ penalty to immediately enforce scarcity. Coefficients found:
            0.0  0.000000    -0.613246   -5.892810     2.070549
            0.0 -0.000057    -1.926542    1.261366    -0.083681
 
+Cool, pipes working so let's have a think: 
+* Predicting the length of time to get pregnant, so negative coeffs are better
+* I would expect age to be a bigger effect,
+* Where has weight gone?
+* Wasn't there something about BMI being 0 instead of NaN...?
+
+Ah, need to normalize regressors obvo! And put weight back in. And get rid of 0 BMIs/ weights
+(prob helps to read the email)... Nope, I did normalize but the others are better predictors.
+As expected being older doesn't help.
+
+        Age    NumBMI    Weight  TempLogFreq  SexLogFreq  AnovCycles 
+      0.000000 -0.000000  0.006235    -0.670034    -6.94606     2.244467
+      0.000036 -0.000507  0.000000    -1.912383     3.82458    -0.144918
+
+
+    
