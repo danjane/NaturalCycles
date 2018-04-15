@@ -6,6 +6,7 @@ import numpy as np
 import sklearn.linear_model
 import sklearn.preprocessing
 import sklearn.model_selection
+import sklearn.ensemble
 import xgboost
 import scipy.sparse
 
@@ -44,6 +45,8 @@ def fix_pill(df):
 
 
 def column_for_weight_missing(df, categorical_columns):
+    # NB: I don't 'fix' the weights, but just leave them at zero
+    # TODO: impute dummy weights?
     df[new_column] = 'No'
     idx = df['Weight']*df['NumBMI'] == 0
     df.loc[idx, new_column] = 'Yes'
@@ -67,12 +70,16 @@ print(categorical_columns)
 
 # Change categories into Integer classes
 categorical_names = {}
+flat_parents = []
+flat_categories = []
 for feature in categorical_columns:
     print(feature)
     le = sklearn.preprocessing.LabelEncoder()
     le.fit(data[feature])
     data[feature] = le.transform(data[feature])
     categorical_names[feature] = list(le.classes_)
+    flat_categories += list(le.classes_)
+    flat_parents += [feature] * len(le.classes_)
 
 # Define a function for one hot encoding the categorical data of a dataframe
 data_cat = data[categorical_columns].values.astype(int)
@@ -85,6 +92,13 @@ def encode(df):
     df_num = df[numerical_columns].astype(float)
     return scipy.sparse.hstack([df_cat, df_num])
 
+# 'Decoder' for exploring important features
+flat_parents += numerical_columns
+flat_categories += numerical_columns
+def important_features(weights):
+    sort_index = np.argsort(weights)
+    sort_index = sort_index[:-11:-1]
+    return [(flat_parents[i], flat_categories[i]) for i in sort_index]
 
 print("Setting aside a test subsample (data_test) for later")
 data_test = data.sample(frac=0.2, random_state=same_random_seed)
@@ -127,20 +141,33 @@ if __name__ == "__main__":
     print(modelL1)
     modelL1.to_csv(simple_lasso_model, index=False)
 
-    # Now try a boosted tree
-    # Code from https://marcotcr.github.io/lime/tutorials/Tutorial%20-%20continuous%20and%20categorical%20features.html
-    print('And with a boosted tree and categorical data')
+    # Full on models with all the categorical data
     X_train = encode(data_train)
     Y_train = data_train['CyclesTrying'].values.astype(np.int8)
 
     X_validate = encode(data_validate)
     Y_validate = data_validate['CyclesTrying'].values.astype(np.int8)
 
+    # Try a random forest
+    print('Random forest and categorical data')
+    clf = sklearn.ensemble.RandomForestClassifier(max_depth=2, random_state=same_random_seed)
+    clf.fit(X_train, Y_train)
+    print(important_features(clf.feature_importances_))
+
+    acc_score = sklearn.metrics.r2_score(Y_validate, clf.predict(X_validate))
+    print("validation r2_score is {:.1f}%".format(acc_score * 100))
+
+    # Now try a boosted tree
+    # Code from https://marcotcr.github.io/lime/tutorials/Tutorial%20-%20continuous%20and%20categorical%20features.html
+    print('And with a boosted tree and categorical data')
+
     gbtree = xgboost.XGBClassifier(n_estimators=50, max_depth=3)
     gbtree.fit(X_train, Y_train)
+    print(important_features(gbtree.feature_importances_))
 
     acc_score = sklearn.metrics.r2_score(Y_validate, gbtree.predict(X_validate))
     print("validation r2_score is {:.1f}%".format(acc_score * 100))
+
 
 
 

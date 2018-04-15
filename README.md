@@ -12,7 +12,7 @@ Note, before we go any further I'm going to set aside 20% of the data until the 
 This is because I'm going to try to make some predictions, so this test data will give me 
 an idea of the out-of-sample power of my models.
 
-### A basic check of the pipes
+#### A basic check of the pipes
 
 Let's check the basics - try a linear regression for time to pregnancy on just 
 the numerical stuff. This will check the X predicting y pipes, and we can use a L1 
@@ -36,7 +36,7 @@ As expected being older doesn't help.
       0.000000 -0.000000  0.006235    -0.670034    -6.94606     2.244467
       0.000036 -0.000507  0.000000    -1.912383     3.82458    -0.144918
       
-### Explicit example
+#### Explicit example
 
 Still didn't trust the age coefficient so really dug in for an explicit example, but all 
 looking good:
@@ -63,10 +63,21 @@ it's not all because of the age (sum the entries to get the 4.4)
     0.0    -0.3     0.0         -0.0         0.0         -0.0        2.5
 
 ## Handling categorical data
-Ok, now trying a boosted tree approach from https://github.com/dmlc/xgboost
+Currently no validation of paramters (hence jump from 32% to 36% for boosted tree)
 
-This gets a higher 32% score, but I'm having to dig to find out where the explanatory power 
-is coming from.
+#### Random Forest
+Random forest and categorical data. Important features:
+[('TempLogFreq', 'TempLogFreq'), ('Pill', 'Recent'), ('Age', 'Age'), ('AnovCycles ', 'AnovCycles '), ('FPlength', 'short'), ('SexLogFreq', 'SexLogFreq'), ('Weight', 'Weight'), ('FPlength', 'long'), ('CycleVar', 'regular'), ('FPlength', 'normal')]
+
+validation r2_score is 20.7%
+
+#### Boosted tree
+And with a boosted tree from https://github.com/dmlc/xgboost
+
+Important features:
+[('SexLogFreq', 'SexLogFreq'), ('TempLogFreq', 'TempLogFreq'), ('NumBMI', 'NumBMI'), ('Age', 'Age'), ('Weight', 'Weight'), ('AnovCycles ', 'AnovCycles '), ('Pill', 'Recent'), ('FPlength', 'short'), ('CycleVar', 'irregular'), ('FPlength', 'long')]
+
+validation r2_score is 36.0%
 
 
 
