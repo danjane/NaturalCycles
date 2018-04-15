@@ -33,6 +33,36 @@ As expected being older doesn't help.
         Age    NumBMI    Weight  TempLogFreq  SexLogFreq  AnovCycles 
       0.000000 -0.000000  0.006235    -0.670034    -6.94606     2.244467
       0.000036 -0.000507  0.000000    -1.912383     3.82458    -0.144918
+      
+## Explicit example
+
+Still didn't trust the age coefficient so really dug in for an explicit example, but all 
+looking good:
+
+    Country               BR
+    Age                   35
+    NumBMI           25.7812
+    Pill               False
+    NCbefore           False
+    FPlength          normal
+    Weight                66
+    CycleVar         regular
+    TempLogFreq         0.16
+    SexLogFreq          0.08
+    DaysTrying            24
+    CyclesTrying           0
+    ExitStatus      Pregnant
+
+The simple L1 penalty gets this totally wrong, predicting 4.4 cycles instead of 0. However, 
+it's not all because of the age (sum the entries to get the 4.4)
+
+    Age  NumBMI  Weight  TempLogFreq  SexLogFreq  AnovCycles   Intercept
+    0.0    -0.0     0.4         -0.1        -0.6          0.0        2.5
+    0.0    -0.3     0.0         -0.0         0.0         -0.0        2.5
+
+
+
+
 
 
     

@@ -9,6 +9,12 @@ data_file = './Data/anafile_challenge_170522.csv'
 
 numerical_columns = ['Age', 'NumBMI', 'Weight', 'TempLogFreq', 'SexLogFreq', 'AnovCycles ']
 
+simple_lasso_model = './Data/simple_lasso_model.csv'
+
+# Use the same seed each time for repeatable results
+same_random_seed = int.from_bytes('nc'.encode('utf-8'), 'little')  # cutesy
+random.seed(same_random_seed)
+
 
 def get_X_Y_from_df(df):
     df = df[df['Weight'] != 0]
@@ -19,10 +25,6 @@ def get_X_Y_from_df(df):
     X = np.concatenate([X, X ** 2], axis=1)  # basic non-linear model
     return X, Y
 
-
-# Use the same seed each time for repeatable results
-same_random_seed = int.from_bytes('nc'.encode('utf-8'), 'little')  # cutesy
-random.seed(same_random_seed)
 
 if __name__ == "__main__":
     print("Reading the data from {}".format(data_file))
@@ -55,9 +57,10 @@ if __name__ == "__main__":
     regr.set_params(alpha=best_alpha, max_iter=10000, normalize=True)
     regr.fit(X_train, Y_train)
     print("validation r^2 is {:.1f}%".format(rsq*100))
-    print(regr.coef_)
 
     new_shape = (2, len(numerical_columns))
     modelL1 = pd.DataFrame(data=regr.coef_.reshape(new_shape), columns=numerical_columns)
 
+    print("Lasso regression with alpha = {:.2g}, coefficients:".format(best_alpha))
     print(modelL1)
+    modelL1.to_csv(simple_lasso_model, index=False)
