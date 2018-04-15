@@ -7,7 +7,6 @@ import sklearn.linear_model
 import sklearn.preprocessing
 import sklearn.model_selection
 import xgboost
-
 import scipy.sparse
 
 data_file = './Data/anafile_challenge_170522.csv'
@@ -104,6 +103,7 @@ if __name__ == "__main__":
     data_validate = data_preg.drop(data_train.index)
 
     # First attempt with Linear Regression
+    # Code from http://scikit-learn.org/stable/tutorial/statistical_inference/supervised_learning.html#sparsity
     X_train, Y_train = get_X_Y_from_df_simple(data_train)
     X_validate, Y_validate = get_X_Y_from_df_simple(data_validate)
 
@@ -128,6 +128,7 @@ if __name__ == "__main__":
     modelL1.to_csv(simple_lasso_model, index=False)
 
     # Now try a boosted tree
+    # Code from https://marcotcr.github.io/lime/tutorials/Tutorial%20-%20continuous%20and%20categorical%20features.html
     print('And with a boosted tree and categorical data')
     X_train = encode(data_train)
     Y_train = data_train['CyclesTrying'].values.astype(np.int8)
