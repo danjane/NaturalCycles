@@ -20,7 +20,7 @@ fitting_columns = ['DaysTrying', 'CyclesTrying']
 simple_lasso_model = './Data/simple_lasso_model.csv'
 
 # Use the same seed each time for repeatable results
-same_random_seed = int.from_bytes('nc'.encode('utf-8'), 'little')  # cutesy
+same_random_seed = ord('n') + ord('c')  # cutesy (and works in both Py2 and 3...)
 random.seed(same_random_seed)
 
 
@@ -89,15 +89,18 @@ def encode(df):
     df_num = df[numerical_columns].astype(float)
     return scipy.sparse.hstack([df_cat, df_num])
 
+
 # 'Decoder' for exploring important features
 flat_parents += numerical_columns
 flat_categories += numerical_columns
+
 
 def important_features(weights):
     df = pd.DataFrame(data={'Feature': flat_parents, 'Category': flat_categories, 'Importance': weights})
     df = df.sort_values('Importance', ascending=False)
     df['cumsum'] = df['Importance'].cumsum()
     return df
+
 
 print("Setting aside a test subsample (data_test) for later")
 data_test = data.sample(frac=0.2, random_state=same_random_seed)
@@ -110,7 +113,49 @@ if __name__ == "__main__":
     print(data.describe().round(1))
     # print(data.describe(include=object))
 
-    print("Have a go for time to preg")
+    print("\n\nHave a go for drop out")
+    data_train = data.sample(frac=0.75, random_state=same_random_seed)
+    data_validate = data.drop(data_train.index)
+    dropout_idx = [p != 'ExitStatus' for p in flat_parents]  # don't want these for prediction
+
+    X_train = encode(data_train)
+    X_train = X_train.todense()[:, dropout_idx]  # I apologize, could be done better
+    Y_train = (data_train['ExitStatus'] == categorical_names['ExitStatus'].index('Dropout')).values.astype(np.int8)
+
+    X_validate = encode(data_validate)
+    X_validate = X_validate.todense()[:,dropout_idx]
+    Y_validate = (data_validate['ExitStatus'] == categorical_names['ExitStatus'].index('Dropout')).values.astype(np.int8)
+
+    # Try a random forest
+    print('Random forest and categorical data')
+    clf = sklearn.ensemble.RandomForestClassifier(max_depth=2, random_state=same_random_seed)
+    clf.fit(X_train, Y_train)
+    features_clf = np.zeros((108,))
+    features_clf[dropout_idx] = clf.feature_importances_
+    print(important_features(features_clf).head(10))
+
+    acc_score = sklearn.metrics.r2_score(Y_validate, clf.predict(X_validate))
+    print("validation r2_score is {:.1f}%".format(acc_score * 100))
+
+
+    # Now try a boosted tree
+    # Code from https://marcotcr.github.io/lime/tutorials/Tutorial%20-%20continuous%20and%20categorical%20features.html
+    print('And with a boosted tree and categorical data')
+
+    gbtree = xgboost.XGBClassifier(n_estimators=50, max_depth=3)
+    gbtree.fit(X_train, Y_train)
+    features_gbtree = np.zeros((108,))
+    features_gbtree[dropout_idx] = gbtree.feature_importances_
+    print(important_features(features_gbtree).head(10))
+
+    acc_score = sklearn.metrics.r2_score(Y_validate, gbtree.predict(X_validate))
+    print("validation r2_score is {:.1f}%".format(acc_score * 100))
+
+
+
+    assert 0==1
+
+    print("\n\nHave a go for time to preg")
     data_preg = data[data['ExitStatus'] == categorical_names['ExitStatus'].index('Pregnant')]
     data_train = data_preg.sample(frac=0.75, random_state=same_random_seed)
     data_validate = data_preg.drop(data_train.index)
