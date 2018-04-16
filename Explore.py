@@ -64,16 +64,13 @@ assert (data.shape[1] -
 
 print('Doing a little preprocessing (fixing pill, noting when weight is missing)')
 data = fix_pill(data)
-print(categorical_columns)
 data, categorical_columns = column_for_weight_missing(data, categorical_columns)
-print(categorical_columns)
 
 # Change categories into Integer classes
 categorical_names = {}
 flat_parents = []
 flat_categories = []
 for feature in categorical_columns:
-    print(feature)
     le = sklearn.preprocessing.LabelEncoder()
     le.fit(data[feature])
     data[feature] = le.transform(data[feature])
@@ -95,10 +92,12 @@ def encode(df):
 # 'Decoder' for exploring important features
 flat_parents += numerical_columns
 flat_categories += numerical_columns
+
 def important_features(weights):
-    sort_index = np.argsort(weights)
-    sort_index = sort_index[:-11:-1]
-    return [(flat_parents[i], flat_categories[i]) for i in sort_index]
+    df = pd.DataFrame(data={'Feature': flat_parents, 'Category': flat_categories, 'Importance': weights})
+    df = df.sort_values('Importance', ascending=False)
+    df['cumsum'] = df['Importance'].cumsum()
+    return df
 
 print("Setting aside a test subsample (data_test) for later")
 data_test = data.sample(frac=0.2, random_state=same_random_seed)
@@ -152,7 +151,7 @@ if __name__ == "__main__":
     print('Random forest and categorical data')
     clf = sklearn.ensemble.RandomForestClassifier(max_depth=2, random_state=same_random_seed)
     clf.fit(X_train, Y_train)
-    print(important_features(clf.feature_importances_))
+    print(important_features(clf.feature_importances_).head(10))
 
     acc_score = sklearn.metrics.r2_score(Y_validate, clf.predict(X_validate))
     print("validation r2_score is {:.1f}%".format(acc_score * 100))
@@ -163,7 +162,7 @@ if __name__ == "__main__":
 
     gbtree = xgboost.XGBClassifier(n_estimators=50, max_depth=3)
     gbtree.fit(X_train, Y_train)
-    print(important_features(gbtree.feature_importances_))
+    print(important_features(gbtree.feature_importances_).head(10))
 
     acc_score = sklearn.metrics.r2_score(Y_validate, gbtree.predict(X_validate))
     print("validation r2_score is {:.1f}%".format(acc_score * 100))

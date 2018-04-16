@@ -22,6 +22,8 @@ penalty to immediately enforce scarcity. Coefficients found:
            0.0  0.000000    -0.613246   -5.892810     2.070549
            0.0 -0.000057    -1.926542    1.261366    -0.083681
 
+validation r2_score is 13.2%
+
 Cool, pipes working so let's have a think: 
 * Predicting the length of time to get pregnant, so negative coeffs are better
 * I would expect age to be a bigger effect,
@@ -63,11 +65,22 @@ it's not all because of the age (sum the entries to get the 4.4)
     0.0    -0.3     0.0         -0.0         0.0         -0.0        2.5
 
 ## Handling categorical data
-Currently no validation of paramters (hence jump from 32% to 36% for boosted tree)
+Currently no validation of parameters (hence jump from quoted 32% to 36% since last commit for boosted tree)
 
 #### Random Forest
 Random forest and categorical data. Important features:
-[('TempLogFreq', 'TempLogFreq'), ('Pill', 'Recent'), ('Age', 'Age'), ('AnovCycles ', 'AnovCycles '), ('FPlength', 'short'), ('SexLogFreq', 'SexLogFreq'), ('Weight', 'Weight'), ('FPlength', 'long'), ('CycleVar', 'regular'), ('FPlength', 'normal')]
+
+        Category      Feature  Importance    cumsum
+    105  TempLogFreq  TempLogFreq    0.201972  0.201972
+    107  AnovCycles   AnovCycles     0.143699  0.345670
+    106   SexLogFreq   SexLogFreq    0.136289  0.481959
+    96       regular     CycleVar    0.084658  0.566617
+    87       LongAgo         Pill    0.081986  0.648603
+    90         False     NCbefore    0.058337  0.706940
+    102          Age          Age    0.039618  0.746557
+    95     irregular     CycleVar    0.034207  0.780765
+    89        Recent         Pill    0.032954  0.813718
+    53            MY      Country    0.032256  0.845974
 
 validation r2_score is 20.7%
 
@@ -75,7 +88,18 @@ validation r2_score is 20.7%
 And with a boosted tree from https://github.com/dmlc/xgboost
 
 Important features:
-[('SexLogFreq', 'SexLogFreq'), ('TempLogFreq', 'TempLogFreq'), ('NumBMI', 'NumBMI'), ('Age', 'Age'), ('Weight', 'Weight'), ('AnovCycles ', 'AnovCycles '), ('Pill', 'Recent'), ('FPlength', 'short'), ('CycleVar', 'irregular'), ('FPlength', 'long')]
+
+        Category      Feature  Importance    cumsum
+    106   SexLogFreq   SexLogFreq    0.269572  0.269572
+    105  TempLogFreq  TempLogFreq    0.215327  0.484899
+    103       NumBMI       NumBMI    0.131931  0.616829
+    102          Age          Age    0.101578  0.718407
+    104       Weight       Weight    0.082945  0.801352
+    107  AnovCycles   AnovCycles     0.078137  0.879489
+    89        Recent         Pill    0.024493  0.903982
+    94         short     FPlength    0.016529  0.920511
+    95     irregular     CycleVar    0.012472  0.932983
+    92          long     FPlength    0.010669  0.943651
 
 validation r2_score is 36.0%
 
