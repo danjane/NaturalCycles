@@ -104,6 +104,7 @@ Important features:
 validation r2_score is 36.0%
 
 
-
+Ok, now moving on to drop out.... Hmmm... negative r2 is always
+a bad sign, hopefully will have a bit more time tonight.
 
     
